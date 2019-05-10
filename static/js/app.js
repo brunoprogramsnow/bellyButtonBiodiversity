@@ -4,12 +4,20 @@ function buildMetadata(sample) {
 
   // Use `d3.json` to fetch the metadata for a sample
     // Use d3 to select the panel with id of `#sample-metadata`
+    let sample_metadata = d3.select("#sample-metadata")
 
     // Use `.html("") to clear any existing metadata
+    sample_metadata.html("")
 
     // Use `Object.entries` to add each key and value pair to the panel
     // Hint: Inside the loop, you will need to use d3 to append new
     // tags for each key-value in the metadata.
+    d3.json("/metadata/"+ sample).then((data) => {
+      
+      Object.entries(data).forEach(function([key,value]){
+        sample_metadata.append("p").text(key + ":" + value)
+      });
+    });
 
     // BONUS: Build the Gauge Chart
     // buildGauge(data.WFREQ);
@@ -18,8 +26,66 @@ function buildMetadata(sample) {
 function buildCharts(sample) {
 
   // @TODO: Use `d3.json` to fetch the sample data for the plots
+  d3.json("/samples/" + sample).then((data) => {
+
+    let otu_ids = data["otu_ids"];
+    let otu_labels = data["otu_labels"];
+
+    let bChart = {
+      x: otu_ids,
+      y: data.sample_values,
+      mode: `markers`,
+      text: otu_labels,
+      marker: {
+        color: otu_ids,
+        size: data.sample_values
+      }
+    }
+    let bData = [bChart];
+
+    let bLayout ={
+      height: 750,
+      width: 750,
+      xaxis: {
+        title:"OTU Id"
+      },
+      yaxis: {
+        title:"Samples"
+      },
+      title: "Linear Bubble Chart"
+    }
+    Plotly.newPlot("bubble", bData, bLayout)
+
+
+    otu_ids_slice = otu_ids.slice(0, 10);
+    otu_labels_slice = otu_labels.slice(0, 10);
+
+    var pData = [{
+      values: otu_ids_slice,
+      labels: otu_labels_slice,
+      type: "pie"
+    }];
+
+    var pLayout = {
+      height: 450,
+      width: 450,
+      showlegend: true,
+      legend: {
+        "orientation": "v",
+        "x": 1.02,
+        "xanchor": "right",
+        "y": 1.0,
+        "yanchor": "bottom"
+      },
+      title: "Pie Chart"
+    };
+  
+    Plotly.newPlot("pie", pData, pLayout);
+  })
+
 
     // @TODO: Build a Bubble Chart using the sample data
+
 
     // @TODO: Build a Pie Chart
     // HINT: You will need to use slice() to grab the top 10 sample_values,
